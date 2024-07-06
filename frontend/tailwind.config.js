@@ -3,11 +3,13 @@ export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
-      container: {
-        padding: {
-          sm: "2rem",
-          md: "10rem",
-        },
+      fontFamily: {
+        roboto: "Roboto",
+      },
+      colors: {
+        primary: "#003B95",
+        secondary: "#006CE4",
+        yellow: "#FFB700",
       },
     },
   },
