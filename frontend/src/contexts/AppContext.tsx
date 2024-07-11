@@ -8,7 +8,7 @@ const STRIPE_PUB_KEY = import.meta.env.VITE_STRIPE_PUB_KEY || "";
 
 type ToastMessage = {
   message: string;
-  type: "SUCESS" | "ERROR";
+  type: "SUCCESS" | "ERROR";
 };
 
 type AppContext = {

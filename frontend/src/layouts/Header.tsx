@@ -6,9 +6,14 @@ import { GiEarthAmerica } from "react-icons/gi";
 import { LiaTaxiSolid } from "react-icons/lia";
 import { PiRoadHorizonBold } from "react-icons/pi";
 import SignOutButton from "../components/ui/SignOutButton";
+import { useState } from "react";
+import { FaRegUser, FaSwatchbook } from "react-icons/fa";
+import { useQuery } from "react-query";
+import * as apiClient from "../api-client";
 
 export const Header = () => {
   const { isLoggedIn } = useAppContext();
+  const [isVisible, setIsVisible] = useState<boolean>(false);
 
   const attributes = [
     {
@@ -37,29 +42,73 @@ export const Header = () => {
     },
   ];
 
+  const handleVIsible = () => {
+    setIsVisible((prev) => !prev);
+  };
+
+  const { data: user } = useQuery(
+    "fetchCurrentUser",
+    apiClient.fetchCurrentUser
+  );
+
   return (
     <div className="bg-primary py-6">
       <div className="container mx-auto flex justify-between">
         <span className="text-xl md:text-2xl text-white font-bold tracking-tight">
           <Link to="/">CloneBooking.com</Link>
         </span>
-        <span className="flex space-x-2">
+        <div className="flex space-x-2 relative">
           {isLoggedIn ? (
-            <>
-              <Link
-                className="flex items-center text-white px-3 font-bold hover:bg-blue-600"
-                to="/my-bookings"
+            <div>
+              <button
+                onClick={handleVIsible}
+                className="flex gap-2 items-center"
               >
-                My Bookings
-              </Link>
-              <Link
-                className="flex items-center text-white px-3 font-bold hover:bg-blue-600"
-                to="/my-hotels"
+                <div className="w-10 h-10 rounded-full bg-yellow"></div>
+                <div className="flex flex-col">
+                  <span className="text-white font-bold text-left">
+                    {user?.firstName}
+                  </span>
+                  <span className="text-sm text-yellow">Genius level 1</span>
+                </div>
+              </button>
+              <div
+                className={`absolute top-14 right-5 w-52 flex flex-col items-center bg-white shadow-md rounded-md trans-300 ${
+                  isVisible
+                    ? "translate-y-0 opacity-100"
+                    : "translate-y-10 opacity-5 -z-50"
+                }`}
               >
-                My Hotels
-              </Link>
-              <SignOutButton />
-            </>
+                <Link
+                  className="flex items-center text-zinc-700 gap-2 px-3 py-3 w-full hover:bg-zinc-200/55 trans-300"
+                  to="/user"
+                >
+                  <span className="text-2xl">
+                    <FaRegUser />
+                  </span>
+                  Manage account
+                </Link>
+                <Link
+                  className="flex items-center text-zinc-700 gap-2 px-3 py-3 w-full hover:bg-zinc-200/55 trans-300"
+                  to="/my-bookings"
+                >
+                  <span className="text-2xl">
+                    <FaSwatchbook />
+                  </span>
+                  My Bookings
+                </Link>
+                <Link
+                  className="flex items-center text-zinc-700 gap-2 px-3 py-3 w-full hover:bg-zinc-200/55 trans-300"
+                  to="/my-hotels"
+                >
+                  <span className="text-2xl">
+                    <MdOutlineLocalHotel />
+                  </span>
+                  My Hotels
+                </Link>
+                <SignOutButton />
+              </div>
+            </div>
           ) : (
             <div className="flex gap-2">
               <Link
@@ -76,17 +125,17 @@ export const Header = () => {
               </Link>
             </div>
           )}
-        </span>
+        </div>
       </div>
-      <div className="container mt-4 flex gap-3 overflow-x-auto">
+      <div className="container mt-4 flex gap-2 overflow-x-auto pb-3">
         {attributes.map((attr, index) => (
           <button
             key={index}
-            className={`min-w-44 flex items-center gap-2 text-white px-5 py-3 rounded-full hover:bg-blue-400/20 trans-300 ${
+            className={`min-w-36 flex items-center gap-2 text-white text-sm pl-3 py-2 rounded-full hover:bg-blue-400/20 trans-300 ${
               index === 0 && "border bg-blue-400/20"
             }`}
           >
-            <span className="text-3xl">{attr.icon}</span>
+            <span className="text-2xl">{attr.icon}</span>
             <span>{attr.name}</span>
           </button>
         ))}

@@ -1,12 +1,14 @@
 import ReactDatePicker from "react-datepicker";
-import {useForm} from "react-hook-form";
-import {useSearchContext} from "../../contexts/SearchContext";
-import {useAppContext} from "../../contexts/AppContext";
-import {useLocation, useNavigate} from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { useSearchContext } from "../../contexts/SearchContext";
+import { useAppContext } from "../../contexts/AppContext";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useSearchContext2 } from "../../contexts/SearchContext2";
+import { HotelType } from "../../interfaces";
 
 type Props = {
   hotelId: string;
-  pricePerNight: number;
+  hotel: HotelType;
 };
 
 type GUestInfoFormData = {
@@ -16,9 +18,9 @@ type GUestInfoFormData = {
   childCount: number;
 };
 
-function GuestInfoForm({hotelId, pricePerNight}: Props) {
-  const search = useSearchContext();
-  const {isLoggedIn} = useAppContext();
+function GuestInfoForm({ hotelId, hotel }: Props) {
+  const { querySearch, setQuerySearch } = useSearchContext2();
+  const { isLoggedIn } = useAppContext();
   const navigate = useNavigate();
   const location = useLocation();
   const {
@@ -26,13 +28,13 @@ function GuestInfoForm({hotelId, pricePerNight}: Props) {
     register,
     handleSubmit,
     setValue,
-    formState: {errors},
+    formState: { errors },
   } = useForm<GUestInfoFormData>({
     defaultValues: {
-      checkIn: search.checkIn,
-      checkOut: search.checkOut,
-      adultCount: search.adultCount,
-      childCount: search.childCount,
+      checkIn: querySearch.checkIn,
+      checkOut: querySearch.checkOut,
+      adultCount: querySearch.adultCount,
+      childCount: querySearch.childCount,
     },
   });
 
@@ -44,30 +46,35 @@ function GuestInfoForm({hotelId, pricePerNight}: Props) {
   maxDate.setFullYear(maxDate.getFullYear() + 1);
 
   const onSignInClick = (data: GUestInfoFormData) => {
-    search.saveSearchValues(
-      "",
-      data.checkIn,
-      data.checkOut,
-      data.adultCount,
-      data.childCount
-    );
-    navigate("/sign-in", {state: {from: location}});
+    // search.saveSearchValues(
+    //   "",
+    //   data.checkIn,
+    //   data.checkOut,
+    //   data.adultCount,
+    //   data.childCount
+    // );
+    navigate("/sign-in", { state: { from: location } });
   };
 
   const onSubmit = (data: GUestInfoFormData) => {
-    search.saveSearchValues(
-      "",
-      data.checkIn,
-      data.checkOut,
-      data.adultCount,
-      data.childCount
-    );
-    navigate(`/hotel/${hotelId}/booking`);
+    // search.saveSearchValues(
+    //   "",
+    //   data.checkIn,
+    //   data.checkOut,
+    //   data.adultCount,
+    //   data.childCount
+    // );
+
+    console.log(hotel);
+    console.log(data);
+    // navigate(`/hotel/${hotelId}/booking`);
   };
 
   return (
     <div className="flex flex-col p-4 bg-blue-300 gap-4">
-      <h3 className="text-md font-bold">{pricePerNight}</h3>
+      {/* <h3 className="text-md font-bold">
+        {hotel.rooms && hotel.rooms[0].pricePerNight}
+      </h3> */}
       <form
         onSubmit={
           isLoggedIn ? handleSubmit(onSubmit) : handleSubmit(onSignInClick)

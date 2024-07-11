@@ -1,12 +1,12 @@
-import {useEffect} from "react";
+import { useEffect } from "react";
 
 type ToastProps = {
   message: string;
-  type: "SUCESS" | "ERROR";
+  type: "SUCCESS" | "ERROR";
   onClose: () => void;
 };
 
-export const Toast = ({message, type, onClose}: ToastProps) => {
+export const Toast = ({ message, type, onClose }: ToastProps) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       onClose();
@@ -18,7 +18,7 @@ export const Toast = ({message, type, onClose}: ToastProps) => {
   }, [onClose]);
 
   const styles =
-    type === "SUCESS"
+    type === "SUCCESS"
       ? "fixed top-4 right-4 z-5 p-4 rounded-md bg-green-600 text-white mx-w-md"
       : "fixed top-4 right-4 z-5 p-4 rounded-md bg-red-600 text-white mx-w-md";
 

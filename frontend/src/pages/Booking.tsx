@@ -1,42 +1,45 @@
-import {useQuery} from "react-query";
+import { useQuery } from "react-query";
 import * as apiClient from "../api-client";
 import BookingForm from "../forms/BookingForm/BookingForm";
-import {useSearchContext} from "../contexts/SearchContext";
-import {useParams} from "react-router-dom";
-import {useEffect, useState} from "react";
+import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 import BookingDetailSummery from "../components/BookingDetailSummery";
-import {Elements} from "@stripe/react-stripe-js";
-import {useAppContext} from "../contexts/AppContext";
+import { Elements } from "@stripe/react-stripe-js";
+import { useAppContext } from "../contexts/AppContext";
+import { useBookingContext } from "../contexts/BookingContext";
 
 function Booking() {
-  const {stripePromise} = useAppContext();
-  const search = useSearchContext();
-  const {hotelId} = useParams();
+  const { hotelId } = useParams();
+  const { stripePromise } = useAppContext();
+  const { bookingData } = useBookingContext();
+
   const [numberOfNights, setNumberOfNights] = useState<number>(0);
 
   useEffect(() => {
-    if (search.checkIn && search.checkOut) {
+    if (bookingData.checkIn && bookingData.checkOut) {
       const nights =
-        Math.abs(search.checkOut.getTime() - search.checkIn.getTime()) /
+        Math.abs(
+          bookingData.checkOut.getTime() - bookingData.checkIn.getTime()
+        ) /
         (1000 * 60 * 60 * 24);
 
       setNumberOfNights(Math.ceil(nights));
     }
-  }, [search.checkIn, search.checkOut]);
+  }, [bookingData.checkIn, bookingData.checkOut]);
 
-  const {data: paymentIntemtData} = useQuery(
-    "cretaePaymentIntent",
+  const { data: paymentIntentData } = useQuery(
+    "createPaymentIntent",
     () =>
-      apiClient.cretaePaymentIntent(
-        hotelId as string,
+      apiClient.createPaymentIntent(
+        bookingData.roomId as string,
         numberOfNights.toString()
       ),
     {
-      enabled: !!hotelId && numberOfNights > 0,
+      enabled: !!bookingData.roomId && numberOfNights > 0,
     }
   );
 
-  const {data: hotel} = useQuery(
+  const { data: hotel } = useQuery(
     "fetchHotelById",
     () => apiClient.fetchHotelById(hotelId as string),
     {
@@ -44,7 +47,7 @@ function Booking() {
     }
   );
 
-  const {data: currentUser} = useQuery(
+  const { data: currentUser } = useQuery(
     "fetchCurrentUser",
     apiClient.fetchCurrentUser
   );
@@ -56,23 +59,23 @@ function Booking() {
   return (
     <div className="grid md:grid-cols-[1fr_2fr]">
       <BookingDetailSummery
-        checkIn={search.checkIn}
-        checkOut={search.checkOut}
-        adultCount={search.adultCount}
-        childCount={search.childCount}
+        checkIn={bookingData.checkIn}
+        checkOut={bookingData.checkOut}
+        adultCount={bookingData.adultCount}
+        childCount={bookingData.childCount}
         numberOfNights={numberOfNights}
         hotel={hotel}
       />
-      {currentUser && paymentIntemtData && (
+      {currentUser && paymentIntentData && (
         <Elements
           stripe={stripePromise}
           options={{
-            clientSecret: paymentIntemtData.clientSecret,
+            clientSecret: paymentIntentData.clientSecret,
           }}
         >
           <BookingForm
             currentUser={currentUser}
-            paymentIntent={paymentIntemtData}
+            paymentIntent={paymentIntentData}
           />
         </Elements>
       )}

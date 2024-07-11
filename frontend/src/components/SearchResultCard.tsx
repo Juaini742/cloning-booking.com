@@ -1,15 +1,22 @@
 import { AiFillStar } from "react-icons/ai";
-import { HotelType } from "../api-client";
 import { Link } from "react-router-dom";
+import { HotelType } from "../interfaces";
 
 type Props = {
   hotel: HotelType;
+  index: number;
 };
 
-function SearchRusultCard({ hotel }: Props) {
+function SearchResultCard({ hotel, index }: Props) {
+  const cheapestPricePerNight =
+    hotel.rooms &&
+    hotel.rooms.reduce((minPrice, room) => {
+      const price = parseFloat(room.pricePerNight || "0");
+      return price < minPrice ? price : minPrice;
+    }, Infinity);
   return (
     <div className="grid grid-cols-1 xl:grid-cols-[2fr_3fr] border border-l-slate-300 rounded-lg p-8 gap-8">
-      <div className="w-full h-[300px]" key={hotel._id}>
+      <div className="w-full h-[300px]" key={index}>
         <img
           src={hotel.imageUrls[0]}
           alt={hotel.name}
@@ -21,10 +28,10 @@ function SearchRusultCard({ hotel }: Props) {
           <div className="flex items-center">
             <span className="flex">
               {Array.from({ length: hotel.starRating }).map(() => (
-                <AiFillStar className="fill-yellow-400" />
+                <AiFillStar className="fill-yellow" />
               ))}
             </span>
-            <span className="ml-1">{hotel.type}</span>
+            <span className="ml-1">{hotel.hotelType}</span>
           </div>
           <Link
             to={`/detail/${hotel._id}`}
@@ -37,22 +44,25 @@ function SearchRusultCard({ hotel }: Props) {
           <div className="line-clamp-4">{hotel.description}</div>
         </div>
         <div className="grid grid-cols-2 items-end whitespace-nowrap">
-          <div className="flex gap-1 items-center">
-            {hotel.facilities.slice(0, 3).map((facility, index) => (
-              <span
-                key={index}
-                className="bg-slate-300 p-2 rounded-lg font-bold text-xs whitespace-nowrap"
-              >
-                {facility}
-              </span>
-            ))}
-            <span className="text-sm">
+          <div className="flex flex-wrap gap-1 items-center">
+            {hotel.rooms &&
+              hotel.hotelFacilities.map((facility, index) => (
+                <span
+                  key={index}
+                  className="bg-zinc-200 p-2 rounded-lg text-xs whitespace-nowrap"
+                >
+                  {facility}
+                </span>
+              ))}
+            {/* <span className="text-sm">
               {hotel.facilities.length > 3 &&
                 `+${hotel.facilities.length - 3} more`}
-            </span>
+            </span> */}
           </div>
           <div className="flex flex-col items-end gap-1">
-            <span className="font-bold">${hotel.pricePerNight}</span>
+            <span className="font-bold">
+              Start from ${cheapestPricePerNight || 0}
+            </span>
             <Link
               to={`/detail/${hotel._id}`}
               className="btn-primary px-5 py-2 rounded-md"
@@ -65,4 +75,4 @@ function SearchRusultCard({ hotel }: Props) {
     </div>
   );
 }
-export default SearchRusultCard;
+export default SearchResultCard;

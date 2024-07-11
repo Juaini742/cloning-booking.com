@@ -1,24 +1,9 @@
-import express, {Request, Response} from "express";
+import express, { Request, Response } from "express";
 import User from "../models/user";
 const router = express.Router();
 import jwt from "jsonwebtoken";
-import {check, validationResult} from "express-validator";
+import { check, validationResult } from "express-validator";
 import verifyToken from "../middleware/auth";
-
-router.get("/me", verifyToken, async (req: Request, res: Response) => {
-  const userId = req.userId;
-
-  try {
-    const user = await User.findById(userId).select("-password");
-    if (!user) {
-      return res.status(400).json({message: "User not found"});
-    }
-    res.json(user);
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({message: "something went wrong"});
-  }
-});
 
 router.post(
   "/register",
@@ -31,9 +16,9 @@ router.post(
     }),
   ],
   async (req: Request, res: Response) => {
-    const erros = validationResult(req);
-    if (!erros.isEmpty()) {
-      return res.status(400).json({message: erros.array()});
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ message: errors.array() });
     }
 
     try {
@@ -42,14 +27,14 @@ router.post(
       });
 
       if (user) {
-        return res.status(400).json({message: "user already exists"});
+        return res.status(400).json({ message: "user already exists" });
       }
 
       user = new User(req.body);
       await user.save();
 
       const token = jwt.sign(
-        {userId: user.id},
+        { userId: user.id },
         process.env.JWT_SECRET_KEY as string,
         {
           expiresIn: "1d",
@@ -62,12 +47,68 @@ router.post(
         maxAge: 86400000,
       });
 
-      return res.status(200).send({message: "User registered OK"});
+      return res.status(200).send({ message: "User registered OK" });
     } catch (error) {
       console.log(error);
-      res.status(500).send({message: "Something went wrong"});
+      res.status(500).send({ message: "Something went wrong" });
     }
   }
 );
 
+router.get("/me", verifyToken, async (req: Request, res: Response) => {
+  const userId = req.userId;
+
+  try {
+    const user = await User.findById(userId).select("-password");
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+    res.json(user);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "something went wrong" });
+  }
+});
+
+router.put("/:id", async (req: Request, res: Response) => {
+  try {
+    const {
+      firstName,
+      lastName,
+      email,
+      phone,
+      date,
+      month,
+      year,
+      nationality,
+      gender,
+      address,
+    } = req.body;
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      {
+        firstName,
+        lastName,
+        email,
+        phone,
+        date,
+        month,
+        year,
+        nationality,
+        gender,
+        address,
+      },
+      {
+        new: true,
+      }
+    );
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+    res.json(user);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "something went wrong" });
+  }
+});
 export default router;

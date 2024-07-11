@@ -1,28 +1,32 @@
-import { FormEvent, useState } from "react";
-import { useSearchContext } from "../contexts/SearchContext";
-import { MdOutlineLocalHotel } from "react-icons/md";
 import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import { FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "react-datepicker/dist/react-datepicker.css";
+import { MdOutlineLocalHotel } from "react-icons/md";
+import { useSearchContext2 } from "../contexts/SearchContext2";
 
 function SearchBar() {
-  const search = useSearchContext();
   const navigate = useNavigate();
-  const [destination, setDestination] = useState<string>(search.destination);
-  const [checkIn, setCheckIn] = useState<Date>(search.checkIn);
-  const [checkOut, setCheckOut] = useState<Date>(search.checkOut);
-  const [adultCount, setAdultCount] = useState<number>(search.adultCount);
-  const [childCount, setChildCount] = useState<number>(search.childCount);
+  const { setQuerySearch } = useSearchContext2();
+  const [localSearch, setLocalSearch] = useState({
+    destination: "",
+    checkIn: new Date(),
+    checkOut: new Date(),
+    adultCount: 1,
+    childCount: 0,
+  });
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
-    search.saveSearchValues(
-      destination,
-      checkIn,
-      checkOut,
-      adultCount,
-      childCount
-    );
+
+    setQuerySearch((prev) => ({
+      ...prev,
+      destination: localSearch.destination,
+      adultCount: localSearch.adultCount,
+      childCount: localSearch.childCount,
+    }));
+
+    console.log(localSearch);
 
     navigate("/search");
   };
@@ -42,8 +46,13 @@ function SearchBar() {
           type="text"
           placeholder="Where are you going"
           className="w-full bg-transparent focus:outline-none"
-          value={destination}
-          onChange={(event) => setDestination(event.target.value)}
+          value={localSearch.destination || ""}
+          onChange={(event) =>
+            setLocalSearch((prev) => ({
+              ...prev,
+              destination: event.target.value ? event.target.value : "",
+            }))
+          }
         />
       </div>
       <div className="bg-white grid grid-cols-2 items-center rounded h-full px-1 pl-3">
@@ -54,8 +63,16 @@ function SearchBar() {
             className="w-full p-1 bg-transparent focus:outline-none font-bold"
             min={1}
             max={20}
-            value={adultCount}
-            onChange={(event) => setAdultCount(parseInt(event.target.value))}
+            value={localSearch.adultCount}
+            onChange={(event) =>
+              setLocalSearch((prev) => ({
+                ...prev,
+                adultCount: event.target.value
+                  ? parseInt(event.target.value)
+                  : 0,
+              }))
+            }
+            // onChange={(event) => setAdultCount(parseInt(event.target.value))}
           />
         </label>
         <label className="items-center flex">
@@ -65,19 +82,30 @@ function SearchBar() {
             className="w-full p-1 bg-transparent focus:outline-none font-bold"
             min={0}
             max={20}
-            value={childCount}
-            onChange={(event) => setChildCount(parseInt(event.target.value))}
+            value={localSearch.childCount}
+            onChange={(e) =>
+              setLocalSearch((prev) => ({
+                ...prev,
+                childCount: e.target.value ? parseInt(e.target.value) : 1,
+              }))
+            }
+            // onChange={(event) => setChildCount(parseInt(event.target.value))}
           />
         </label>
       </div>
       <div className="h-full grid grid-cols-2 items-center bg-white rounded pl-3">
         <div>
           <DatePicker
-            selected={checkIn}
-            onChange={(date) => setCheckIn(date as Date)}
+            selected={localSearch.checkIn}
+            onChange={(date) =>
+              setLocalSearch((prev) => ({
+                ...prev,
+                checkIn: date as Date,
+              }))
+            }
             selectsStart
-            startDate={checkIn}
-            endDate={checkOut}
+            startDate={localSearch.checkIn}
+            endDate={localSearch.checkOut}
             minDate={minDate}
             maxDate={maxDate}
             placeholderText="Check in Date"
@@ -86,11 +114,16 @@ function SearchBar() {
         </div>
         <div>
           <DatePicker
-            selected={checkOut}
-            onChange={(date) => setCheckOut(date as Date)}
+            selected={localSearch.checkOut}
+            onChange={(date) =>
+              setLocalSearch((prev) => ({
+                ...prev,
+                checkOut: date as Date,
+              }))
+            }
             selectsStart
-            startDate={checkIn}
-            endDate={checkOut}
+            startDate={localSearch.checkIn}
+            endDate={localSearch.checkOut}
             minDate={minDate}
             maxDate={maxDate}
             placeholderText="Check Out Date"

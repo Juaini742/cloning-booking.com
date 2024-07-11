@@ -1,11 +1,14 @@
-import express, {Request, Response} from "express";
+import express, { Request, Response } from "express";
 import multer from "multer";
 const router = express.Router();
 import cloudinary from "cloudinary";
 import verifyToken from "../middleware/auth";
-import {body} from "express-validator";
-import {HotelType} from "../shared/types";
-import Hotel from "../models/hotel";
+import { body, validationResult } from "express-validator";
+import { HotelType, RoomType } from "../shared/types";
+import { Hotel, Room } from "../models/room";
+import mongoose from "mongoose";
+import { validateHotelData } from "../middleware/validateHotelData";
+import { validateRoomsData } from "../middleware/validateRoomsData";
 
 const storage = multer.memoryStorage();
 const upload = multer({
@@ -19,49 +22,89 @@ const upload = multer({
 router.post(
   "/",
   verifyToken,
-  [
-    body("name").notEmpty().withMessage("name is required"),
-    body("city").notEmpty().withMessage("city is required"),
-    body("country").notEmpty().withMessage("country is required"),
-    body("description").notEmpty().withMessage("description is required"),
-    body("type").notEmpty().withMessage("type is required"),
-    body("pricePerNight")
-      .notEmpty()
-      .isNumeric()
-      .withMessage("Price per night is required"),
-    body("facilities")
-      .notEmpty()
-      .isArray()
-      .withMessage("Facilities are required"),
-  ],
   upload.array("imageFiles", 6),
+  validateHotelData,
   async (req: Request, res: Response) => {
     try {
       const imageFiles = req.files as Express.Multer.File[];
-      const newHotel: HotelType = req.body;
+      const hotelData: HotelType = req.body;
+
+      console.log(imageFiles);
+      console.log(hotelData);
 
       const imageUrls = await uploadedImages(imageFiles);
-      newHotel.imageUrls = imageUrls;
-      newHotel.lastUpdated = new Date();
-      newHotel.userId = req.userId;
+      hotelData.imageUrls = imageUrls;
+      hotelData.lastUpdated = new Date();
+      hotelData.userId = req.userId;
 
-      const hotel = new Hotel(newHotel);
+      const hotel = new Hotel(hotelData);
       await hotel.save();
 
-      res.status(201).send(hotel);
+      res.status(201).send(imageFiles);
     } catch (error) {
-      console.log("Error creating hotel", error);
-      res.status(500).json("Something went wrong");
+      console.error("Error creating hotel", error);
+      res.status(500).json({ message: "Something went wrong" });
+    }
+  }
+);
+
+router.post(
+  "/:hotelId/rooms",
+  verifyToken,
+  upload.array("imageFiles", 6),
+  // validateRoomsData,
+  async (req: Request, res: Response) => {
+    try {
+      const hotelId = req.params.hotelId;
+      const hotel = await Hotel.findById(hotelId);
+
+      if (!hotel) {
+        return res.status(404).json({ message: "Hotel not found" });
+      }
+      const imageFiles = req.files as Express.Multer.File[];
+
+      const rooms: RoomType[] = req.body.rooms;
+
+      const imageUrls = await uploadedImages(imageFiles);
+
+      let imageUrlIndex = 0;
+      const roomDocs = rooms.map((room) => {
+        const roomImageUrls = imageUrls.slice(
+          imageUrlIndex,
+          imageUrlIndex + room.imageUrls.length
+        );
+        imageUrlIndex += room.imageUrls.length;
+        return {
+          ...room,
+          hotelId: new mongoose.Types.ObjectId(hotelId),
+          lastUpdated: new Date(),
+          available: true,
+          imageUrls: roomImageUrls,
+        };
+      });
+
+      const createdRooms = await Room.insertMany(roomDocs);
+
+      hotel.rooms.push(
+        ...createdRooms.map(
+          (room) => room._id as unknown as mongoose.Types.ObjectId
+        )
+      );
+      await hotel.save();
+      res.status(201).send(rooms);
+    } catch (error) {
+      console.error("Error creating room", error);
+      res.status(500).json({ message: "Something went wrong" });
     }
   }
 );
 
 router.get("/", verifyToken, async (req: Request, res: Response) => {
   try {
-    const hotels = await Hotel.find({userId: req.userId});
+    const hotels = await Hotel.find({ userId: req.userId }).populate("rooms");
     res.json(hotels);
   } catch (error) {
-    res.status(500).json("Erro fetching hotels");
+    res.status(500).json("Error fetching hotels");
   }
 });
 
@@ -75,7 +118,7 @@ router.get("/:id", verifyToken, async (req: Request, res: Response) => {
 
     res.json(hotel);
   } catch (error) {
-    res.status(500).json("Erro fetching hotels");
+    res.status(500).json("Error fetching hotels");
   }
 });
 
@@ -94,7 +137,7 @@ router.put(
           userId: req.userId,
         },
         updatedHotel,
-        {new: true}
+        { new: true }
       );
 
       if (!hotel) {
@@ -113,7 +156,7 @@ router.put(
 
       res.status(201).json(hotel);
     } catch (error) {
-      res.status(500).json("Erro fetching hotels");
+      res.status(500).json("Error fetching hotels");
     }
   }
 );

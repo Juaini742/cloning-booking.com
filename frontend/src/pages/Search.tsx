@@ -1,72 +1,19 @@
 import { useQuery } from "react-query";
-import { useSearchContext } from "../contexts/SearchContext";
+import { HotelType } from "../interfaces";
 import * as apiClient from "../api-client";
-import { useState } from "react";
-import SearchRusultCard from "../components/SearchRusultCard";
-import Pagination from "../components/ui/Pagination";
-import StarRatingFilter from "../components/ui/StarRatingFilter";
-import HotelTypeFilter from "../components/HotelTypeFilter";
-import FacilitisFilter from "../components/FacilitiesFilter";
 import PriceFilter from "../components/ui/PriceFilter";
+import HotelTypeFilter from "../components/HotelTypeFilter";
+import FacilitiesFilter from "../components/FacilitiesFilter";
+import SearchResultCard from "../components/SearchResultCard";
+import { useSearchContext2 } from "../contexts/SearchContext2";
+import StarRatingFilter from "../components/ui/StarRatingFilter";
 
 function Search() {
-  const search = useSearchContext();
-  const [page, setPage] = useState<number>(1);
-  const [selectedStars, setSelectedStars] = useState<string[]>([]);
-  const [selectedhotelTypes, setSelectedhotelTypes] = useState<string[]>([]);
-  const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
-  const [selectedPrice, setSelectedPrice] = useState<number | undefined>();
-  const [sortOption, setSortOption] = useState<string>("");
+  const { querySearch, setQuerySearch } = useSearchContext2();
 
-  const searchParams = {
-    destination: search.destination,
-    checkIn: search.checkIn.toString(),
-    checkOut: search.checkOut.toString(),
-    adultCount: search.adultCount.toString(),
-    childCount: search.childCount.toString(),
-    page: page.toString(),
-    stars: selectedStars,
-    types: selectedhotelTypes,
-    facilities: selectedFacilities,
-    maxPrice: selectedPrice?.toString(),
-    sortOption,
-  };
-
-  const { data: hotelData } = useQuery(["searchHotels", searchParams], () =>
-    apiClient.searchHotels(searchParams)
+  const { data: hotelData } = useQuery(["searchHotels", querySearch], () =>
+    apiClient.searchHotels2(querySearch)
   );
-
-  const handleStarsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const starRating = event.target.value;
-
-    setSelectedStars((prevStars) =>
-      event.target.checked
-        ? [...prevStars, starRating]
-        : prevStars.filter((star) => star !== starRating)
-    );
-  };
-
-  const handleHotelTypeChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const hotelType = event.target.value;
-
-    setSelectedhotelTypes((prevType) =>
-      event.target.checked
-        ? [...prevType, hotelType]
-        : prevType.filter((hotelType) => hotelType !== hotelType)
-    );
-  };
-
-  const handleFacilityhange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const facility = event.target.value;
-
-    setSelectedFacilities((prevFacilities) =>
-      event.target.checked
-        ? [...prevFacilities, facility]
-        : prevFacilities.filter((prevFacility) => prevFacility !== facility)
-    );
-  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[250px_1fr] gap-5">
@@ -75,35 +22,21 @@ function Search() {
           <h3 className="text-lg font-semibold border-b border-slate-300 p-5">
             FIlter By:
           </h3>
-          <StarRatingFilter
-            selectedStars={selectedStars}
-            onChange={handleStarsChange}
-          />
-          <HotelTypeFilter
-            selectedhotelTypes={selectedhotelTypes}
-            onChange={handleHotelTypeChange}
-          />
-          <FacilitisFilter
-            selectedFacilities={selectedFacilities}
-            onChange={handleFacilityhange}
-          />
+          <StarRatingFilter setQuerySearch={setQuerySearch} />
+          <HotelTypeFilter setQuerySearch={setQuerySearch} />
+          <FacilitiesFilter setQuerySearch={setQuerySearch} />
           <PriceFilter
-            selectedPrice={selectedPrice}
-            onChange={(value?: number) => setSelectedPrice(value)}
+            querySearch={querySearch}
+            setQuerySearch={setQuerySearch}
           />
         </div>
       </div>
       <div className="flex flex-col gap-5">
         <div className="flex justify-between items-center">
-          <span className="text-xl font-bold">
+          {/* <span className="text-xl font-bold">
             {hotelData?.pagination.total} Hotels found
-            {search.destination ? `in ${search.destination}` : ""}
-          </span>
-          <select
-            value={sortOption}
-            onChange={(event) => setSortOption(event.target.value)}
-            className="p-2 border rounded-md"
-          >
+          </span> */}
+          <select className="p-2 border rounded-md">
             <option value="">Sort By</option>
             <option value="starRating">Star Rating</option>
             <option value="pricePerNightAsc">
@@ -114,15 +47,39 @@ function Search() {
             </option>
           </select>
         </div>
-        {hotelData?.data.map((hotel) => (
-          <SearchRusultCard hotel={hotel} />
+        {hotelData?.map((hotel: HotelType, index: number) => (
+          <SearchResultCard index={index} hotel={hotel} />
         ))}
+
+        {/* {hotelData?.map((hotel: HotelType, index: number) => {
+          return (
+            <ul key={index} className="p-3 border border-zinc-600 rounded-md">
+              <li>{hotel.name}</li>
+              <li>{hotel.country}</li>
+              <li>{hotel.city}</li>
+              <li>star: {hotel.starRating}</li>
+              <li>
+                room number:{" "}
+                {hotel.rooms[index] && hotel.rooms[index].roomNumber}
+              </li>
+              <li>
+                price: {hotel.rooms[index] && hotel.rooms[index].pricePerNight}
+              </li>
+              <li>
+                facilities:{" "}
+                {hotel.rooms[index] && hotel.rooms[index].facilities.join(", ")}
+              </li>
+              <li>type:{hotel.rooms[index] && hotel.rooms[index].type}</li>
+            </ul>
+          );
+        })} */}
+
         <div className="">
-          <Pagination
+          {/* <Pagination
             page={hotelData?.pagination.page || 1}
             pages={hotelData?.pagination.pages || 1}
             onPageChange={(page) => setPage(page)}
-          />
+          /> */}
         </div>
       </div>
     </div>

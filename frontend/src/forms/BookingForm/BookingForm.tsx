@@ -1,12 +1,12 @@
-import {useForm} from "react-hook-form";
-import {PaymentIntentresponse, UserType} from "../../api-client";
-import {CardElement, useElements, useStripe} from "@stripe/react-stripe-js";
-import {StripeCardElement} from "@stripe/stripe-js";
-import {useSearchContext} from "../../contexts/SearchContext";
-import {useParams} from "react-router-dom";
-import {useMutation} from "react-query";
+import { useForm } from "react-hook-form";
+import { PaymentIntentresponse, UserType } from "../../api-client";
+import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import { StripeCardElement } from "@stripe/stripe-js";
+import { useParams } from "react-router-dom";
+import { useMutation } from "react-query";
 import * as apiClient from "../../api-client";
-import {useAppContext} from "../../contexts/AppContext";
+import { useAppContext } from "../../contexts/AppContext";
+import { useSearchContext2 } from "../../contexts/SearchContext2";
 type Props = {
   currentUser: UserType;
   paymentIntent: PaymentIntentresponse;
@@ -25,35 +25,37 @@ export type BookingFormData = {
   totalCost: number;
 };
 
-function BookingForm({currentUser, paymentIntent}: Props) {
+function BookingForm({ currentUser, paymentIntent }: Props) {
   const stripe = useStripe();
   const elements = useElements();
-  const {hotelId} = useParams();
+  const { hotelId } = useParams();
+  const { querySearch, setQuerySearch } = useSearchContext2();
 
-  const search = useSearchContext();
-  const {showToast} = useAppContext();
+  const { showToast } = useAppContext();
 
-  const {mutate: bookRoom, isLoading} = useMutation(
+  const { mutate: bookRoom, isLoading } = useMutation(
     apiClient.createRoomBooking,
     {
       onSuccess: () => {
-        showToast({message: "Booking Saved!", type: "SUCESS"});
+        showToast({ message: "Booking Saved!", type: "SUCCESS" });
       },
       onError: () => {
-        showToast({message: "Error saving booking", type: "ERROR"});
+        showToast({ message: "Error saving booking", type: "ERROR" });
       },
     }
   );
 
-  const {handleSubmit, register} = useForm<BookingFormData>({
+  console.log(querySearch);
+
+  const { handleSubmit, register } = useForm<BookingFormData>({
     defaultValues: {
       firstName: currentUser.firstName,
       lastName: currentUser.lastName,
       email: currentUser.email,
-      adultCount: search.adultCount,
-      childCount: search.childCount,
-      checkIn: search.checkIn.toISOString(),
-      checkOut: search.checkOut.toISOString(),
+      adultCount: querySearch.adultCount,
+      childCount: querySearch.childCount,
+      checkIn: querySearch.checkIn.toISOString(),
+      checkOut: querySearch.checkOut.toISOString(),
       hotelId: hotelId,
       totalCost: paymentIntent.totalCost,
       paymentIntentId: paymentIntent.paymentIntentId,
@@ -72,7 +74,7 @@ function BookingForm({currentUser, paymentIntent}: Props) {
     });
 
     if (result.paymentIntent?.status === "succeeded") {
-      bookRoom({...formData, paymentIntentId: result.paymentIntent.id});
+      bookRoom({ ...formData, paymentIntentId: result.paymentIntent.id });
     }
   };
 

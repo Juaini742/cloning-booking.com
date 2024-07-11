@@ -7,14 +7,17 @@ import {
 import { Layout } from "./layouts/Layouts";
 import { Register } from "./pages/Register";
 import SIgnIn from "./pages/SIgnIn";
-import AddHotel from "./pages/AddHotel";
 import { useAppContext } from "./contexts/AppContext";
 import MyHotels from "./pages/MyHotels";
-import AditHotel from "./pages/AditHotel";
-import Search from "./pages/Search";
 import Detail from "./pages/Detail";
 import Booking from "./pages/Booking";
 import Home from "./pages/Home";
+import ProfilePage from "./layouts/Profile";
+import AddHotelPage from "./pages/AddHotelPage";
+import AddRoomPage from "./pages/AddRoomPage";
+import MyHotelDetail from "./pages/MyHotelDetail";
+import Search from "./pages/Search";
+import EditHotel from "./pages/EditHotel";
 
 function App() {
   const { isLoggedIn } = useAppContext();
@@ -43,18 +46,44 @@ function App() {
         {isLoggedIn && (
           <>
             <Route
-              path="/hotel/:hotelId/booking"
+              path="/user"
+              element={
+                <Layout>
+                  <ProfilePage />
+                </Layout>
+              }
+            />
+            <Route
+              path="/hotel/:roomId/booking"
               element={
                 <Layout>
                   <Booking />
                 </Layout>
               }
             />
+
             <Route
               path="/add-hotel"
               element={
                 <Layout>
-                  <AddHotel />
+                  <AddHotelPage />
+                </Layout>
+              }
+            />
+
+            <Route
+              path="/add-rooms/:id"
+              element={
+                <Layout>
+                  <AddRoomPage />
+                </Layout>
+              }
+            />
+            <Route
+              path="/my-hotel/:hotelId"
+              element={
+                <Layout>
+                  <MyHotelDetail />
                 </Layout>
               }
             />
@@ -70,7 +99,7 @@ function App() {
               path="/edit-hotel/:hotelId"
               element={
                 <Layout>
-                  <AditHotel />
+                  <EditHotel />
                 </Layout>
               }
             />
