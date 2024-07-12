@@ -45,7 +45,7 @@ export type HotelType = {
   starRating: number;
   imageUrls: string[];
   lastUpdated: Date;
-  bookings: BookingType[];
+  bookings: BookingCompleteType[];
   rooms?: Rooms[];
 };
 
@@ -83,7 +83,7 @@ export interface RoomsType {
   rooms: Rooms[];
 }
 
-export type BookingType = {
+export type BookingCompleteType = {
   _id: string;
   userId: string;
   firstName: string;

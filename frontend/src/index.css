@@ -15,21 +15,21 @@ body {
 }
 
 .btn-primary {
-  @apply bg-secondary text-white hover:bg-primary trans-300;
+  @apply bg-secondary text-white hover:bg-primary disabled:bg-gray-500 trans-300;
 }
 
 .btn-indigo {
-  @apply bg-indigo-700 text-white hover:bg-indigo-900 trans-300;
+  @apply bg-indigo-700 text-white hover:bg-indigo-900 disabled:bg-gray-500 trans-300;
 }
 
 .btn-success {
-  @apply bg-green-700 text-white hover:bg-green-900 trans-300;
+  @apply bg-green-700 text-white hover:bg-green-900 disabled:bg-gray-500 trans-300;
 }
 
 .btn-warning {
-  @apply bg-amber-700 text-white hover:bg-amber-900 trans-300;
+  @apply bg-amber-700 text-white hover:bg-amber-900 disabled:bg-gray-500 trans-300;
 }
 
 .btn-danger {
-  @apply bg-red-700 text-white hover:bg-red-900 trans-300;
+  @apply bg-red-700 text-white hover:bg-red-900 disabled:bg-gray-500 trans-300;
 }

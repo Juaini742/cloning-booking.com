@@ -1,21 +1,24 @@
-import { useForm } from "react-hook-form";
-import { PaymentIntentresponse, UserType } from "../../api-client";
-import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
-import { StripeCardElement } from "@stripe/stripe-js";
-import { useParams } from "react-router-dom";
 import { useMutation } from "react-query";
+import { useForm } from "react-hook-form";
 import * as apiClient from "../../api-client";
+import { StripeCardElement } from "@stripe/stripe-js";
 import { useAppContext } from "../../contexts/AppContext";
-import { useSearchContext2 } from "../../contexts/SearchContext2";
+import { BookingType } from "../../contexts/BookingContext";
+import { PaymentIntentResponse, UserType } from "../../interfaces";
+import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import { useNavigate } from "react-router-dom";
 type Props = {
+  bookingData: BookingType;
+  hotelId: string | undefined;
   currentUser: UserType;
-  paymentIntent: PaymentIntentresponse;
+  paymentIntent: PaymentIntentResponse;
 };
 
 export type BookingFormData = {
   firstName: string;
   lastName: string;
   email: string;
+  userId: string;
   adultCount: number;
   childCount: number;
   checkIn: string;
@@ -25,12 +28,15 @@ export type BookingFormData = {
   totalCost: number;
 };
 
-function BookingForm({ currentUser, paymentIntent }: Props) {
+function BookingForm({
+  bookingData,
+  hotelId,
+  currentUser,
+  paymentIntent,
+}: Props) {
   const stripe = useStripe();
   const elements = useElements();
-  const { hotelId } = useParams();
-  const { querySearch, setQuerySearch } = useSearchContext2();
-
+  const navigate = useNavigate();
   const { showToast } = useAppContext();
 
   const { mutate: bookRoom, isLoading } = useMutation(
@@ -45,17 +51,16 @@ function BookingForm({ currentUser, paymentIntent }: Props) {
     }
   );
 
-  console.log(querySearch);
-
   const { handleSubmit, register } = useForm<BookingFormData>({
     defaultValues: {
       firstName: currentUser.firstName,
       lastName: currentUser.lastName,
       email: currentUser.email,
-      adultCount: querySearch.adultCount,
-      childCount: querySearch.childCount,
-      checkIn: querySearch.checkIn.toISOString(),
-      checkOut: querySearch.checkOut.toISOString(),
+      userId: currentUser._id,
+      adultCount: bookingData.adultCount,
+      childCount: bookingData.childCount,
+      checkIn: bookingData.checkIn.toISOString(),
+      checkOut: bookingData.checkOut.toISOString(),
       hotelId: hotelId,
       totalCost: paymentIntent.totalCost,
       paymentIntentId: paymentIntent.paymentIntentId,
@@ -75,6 +80,7 @@ function BookingForm({ currentUser, paymentIntent }: Props) {
 
     if (result.paymentIntent?.status === "succeeded") {
       bookRoom({ ...formData, paymentIntentId: result.paymentIntent.id });
+      navigate("/");
     }
   };
 
@@ -122,7 +128,7 @@ function BookingForm({ currentUser, paymentIntent }: Props) {
 
         <div className="bg-blue-200 p-4 rounded-md">
           <div className="font-semibold text-lg">
-            Total Cost: £{paymentIntent.totalCost.toFixed(2)}
+            Total Cost: ${paymentIntent.totalCost}
           </div>
           <div className="text-xs">Includes taxes and charges</div>
         </div>
@@ -140,7 +146,7 @@ function BookingForm({ currentUser, paymentIntent }: Props) {
         <button
           disabled={isLoading}
           type="submit"
-          className="bg-blue-600 text-white p-2 font-bold hover:bg-blue-500 text-md disabled:bg-gray-500"
+          className="btn-primary px-4 py-2 rounded"
         >
           {isLoading ? "Saving..." : "Confirm Booking"}
         </button>

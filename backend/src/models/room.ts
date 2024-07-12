@@ -19,7 +19,7 @@ const roomSchema = new mongoose.Schema<RoomType>({
   lastUpdated: { type: Date, required: true, default: Date.now },
 });
 
-const bookingSchema = new mongoose.Schema<BookingType>({
+const bookingSchema = new mongoose.Schema({
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
   email: { type: String, required: true },
@@ -27,9 +27,14 @@ const bookingSchema = new mongoose.Schema<BookingType>({
   childCount: { type: Number, required: true },
   checkIn: { type: Date, required: true },
   checkOut: { type: Date, required: true },
-  userId: { type: String, required: true },
-  roomId: { type: mongoose.Schema.Types.ObjectId, ref: "Room", required: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  hotelId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Hotel",
+    required: true,
+  },
   totalCost: { type: Number, required: true },
+  paymentIntentId: { type: String, required: true },
 });
 
 const hotelSchema = new mongoose.Schema<HotelType>({

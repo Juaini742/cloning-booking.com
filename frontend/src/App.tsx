@@ -54,7 +54,7 @@ function App() {
               }
             />
             <Route
-              path="/hotel/:roomId/booking"
+              path="/hotel/:hotelId/booking"
               element={
                 <Layout>
                   <Booking />

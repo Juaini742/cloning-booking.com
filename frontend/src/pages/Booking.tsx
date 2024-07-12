@@ -12,7 +12,6 @@ function Booking() {
   const { hotelId } = useParams();
   const { stripePromise } = useAppContext();
   const { bookingData } = useBookingContext();
-
   const [numberOfNights, setNumberOfNights] = useState<number>(0);
 
   useEffect(() => {
@@ -23,7 +22,7 @@ function Booking() {
         ) /
         (1000 * 60 * 60 * 24);
 
-      setNumberOfNights(Math.ceil(nights));
+      setNumberOfNights(nights === 0 ? 1 : Math.ceil(nights));
     }
   }, [bookingData.checkIn, bookingData.checkOut]);
 
@@ -74,6 +73,8 @@ function Booking() {
           }}
         >
           <BookingForm
+            bookingData={bookingData}
+            hotelId={hotelId}
             currentUser={currentUser}
             paymentIntent={paymentIntentData}
           />
